@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ title or "Posts" }}</h2>
+
+<form method="GET" action="{{ url_for('posts.search') }}" class="form-inline mb-4">
+    <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search posts..." aria-label="Search" value="{{ request.args.get('q', '') }}">
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+</form>
+
+{% if posts %}
+    {% for post in posts %}
+        <div style="margin-bottom: 20px;">
+            <h3><a href="{{ url_for('posts.post_detail', post_id=post.id) }}">{{ post.title }}</a></h3>
+            <p>{{ post.body[:100] }}...</p>
+            <small>By {{ post.author.username }} | {{ post.created_at.strftime('%Y-%m-%d') }}</small><br>
+
+            {% if current_user.is_authenticated and (current_user.role.name == 'ADMIN' or (current_user.role.name == 'PUBLISHER' and current_user.id == post.author_id)) %}
+                <a href="{{ url_for('posts.edit_post', post_id=post.id) }}" class="btn btn-sm btn-outline-primary mt-1">✏️ Edit</a>
+                <form method="POST" action="{{ url_for('posts.delete_post_route', post_id=post.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger mt-1">🗑️ Delete</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No posts available.</p>
+{% endif %}
+{% endblock %}
